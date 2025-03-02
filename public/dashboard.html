@@ -5,77 +5,65 @@
     <title>Личный кабинет партнера</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
-        .container { max-width: 600px; margin: 20px auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .order { padding: 15px; border: 1px solid #ddd; margin-bottom: 10px; background: #f9f9f9; }
-        .order h3 { margin: 0 0 10px; }
-        button { padding: 10px; margin-top: 10px; background-color: #28a745; color: white; border: none; cursor: pointer; }
-        button:hover { background-color: #218838; }
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .order { background: white; padding: 15px; margin: 10px 0; border: 1px solid #ccc; }
+        button { padding: 8px; margin-top: 5px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>Мои заказы</h2>
-    <div id="orders"></div>
-</div>
+<h2>Личный кабинет</h2>
+<div id="ordersContainer">Загрузка заказов...</div>
 
 <script>
-    let tg = window.Telegram.WebApp;
-    tg.expand();
+let tg = window.Telegram.WebApp;
+tg.expand();
 
-    let orders = [
-        {
-            id: 1,
-            description: "Шары на день рождения",
-            deliveryType: "Доставка",
-            deliveryTime: "12:00",
-            wishes: "Добавить золотые шары"
-        },
-        {
-            id: 2,
-            description: "Композиция на свадьбу",
-            deliveryType: "Самовывоз",
-            deliveryTime: "15:00",
-            wishes: "Добавить надпись"
+function loadOrders() {
+    fetch("https://your-backend-url/api/orders", {  // здесь подставишь свой backend для загрузки заказов
+        method: "GET",
+    }).then(response => response.json()).then(data => {
+        const container = document.getElementById("ordersContainer");
+        container.innerHTML = "";
+
+        if (data.length === 0) {
+            container.innerHTML = "Пока нет заказов.";
+            return;
         }
-    ];
 
-    function renderOrders() {
-        let ordersContainer = document.getElementById("orders");
-        ordersContainer.innerHTML = "";
-
-        orders.forEach(order => {
-            let orderDiv = document.createElement("div");
-            orderDiv.className = "order";
-            orderDiv.innerHTML = `
-                <h3>Заказ №${order.id}</h3>
-                <p>${order.description}</p>
-                <p>Тип: ${order.deliveryType}</p>
-                <p>Время: ${order.deliveryTime}</p>
-                <p>Пожелания: ${order.wishes}</p>
-                <button onclick="respondToOrder(${order.id})">Откликнуться</button>
+        data.forEach(order => {
+            let div = document.createElement("div");
+            div.className = "order";
+            div.innerHTML = `
+                <strong>Заказ №${order.id}</strong><br>
+                Город: ${order.city}<br>
+                Описание: ${order.description}<br>
+                <img src="${order.image_url}" style="width: 100%; margin: 5px 0;"><br>
+                <textarea id="comment-${order.id}" placeholder="Комментарий для клиента"></textarea>
+                <button onclick="acceptOrder(${order.id})">Взять в работу</button>
             `;
-            ordersContainer.appendChild(orderDiv);
+            container.appendChild(div);
         });
-    }
+    }).catch(error => {
+        document.getElementById("ordersContainer").innerText = "Ошибка загрузки заказов.";
+    });
+}
 
-    function respondToOrder(orderId) {
-        let proposedPrice = prompt("Введите вашу цену за выполнение:");
-        let comment = prompt("Введите комментарий для клиента (необязательно):");
+function acceptOrder(orderId) {
+    let comment = document.getElementById(`comment-${orderId}`).value;
 
-        if (proposedPrice !== null) {
-            let response = {
-                action: "respond_order",
-                orderId: orderId,
-                price: proposedPrice,
-                comment: comment || ""
-            };
-            Telegram.WebApp.sendData(JSON.stringify(response));
-        }
-    }
+    let data = {
+        action: "accept_order",
+        order_id: orderId,
+        comment: comment,
+        price: prompt("Введите стоимость выполнения заказа")
+    };
 
-    renderOrders();
+    Telegram.WebApp.sendData(JSON.stringify(data));
+    Telegram.WebApp.close();
+}
+
+loadOrders();
 </script>
 
 </body>
