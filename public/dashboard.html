@@ -20,7 +20,7 @@ let tg = window.Telegram.WebApp;
 tg.expand();
 
 function loadOrders() {
-    fetch("https://your-backend-url/api/orders", {  // здесь подставишь свой backend для загрузки заказов
+    fetch("https://as5c4b-185-77-216-4.ru.tuna.am/api/orders", {  // здесь подставишь свой backend для загрузки заказов
         method: "GET",
     }).then(response => response.json()).then(data => {
         const container = document.getElementById("ordersContainer");
