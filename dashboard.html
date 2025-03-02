@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Личный кабинет партнера</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 20px auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .order { padding: 15px; border: 1px solid #ddd; margin-bottom: 10px; background: #f9f9f9; }
+        .order h3 { margin: 0 0 10px; }
+        button { padding: 10px; margin-top: 10px; background-color: #28a745; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #218838; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Мои заказы</h2>
+    <div id="orders"></div>
+</div>
+
+<script>
+    let tg = window.Telegram.WebApp;
+    tg.expand();
+
+    let orders = [
+        {
+            id: 1,
+            description: "Шары на день рождения",
+            deliveryType: "Доставка",
+            deliveryTime: "12:00",
+            wishes: "Добавить золотые шары"
+        },
+        {
+            id: 2,
+            description: "Композиция на свадьбу",
+            deliveryType: "Самовывоз",
+            deliveryTime: "15:00",
+            wishes: "Добавить надпись"
+        }
+    ];
+
+    function renderOrders() {
+        let ordersContainer = document.getElementById("orders");
+        ordersContainer.innerHTML = "";
+
+        orders.forEach(order => {
+            let orderDiv = document.createElement("div");
+            orderDiv.className = "order";
+            orderDiv.innerHTML = `
+                <h3>Заказ №${order.id}</h3>
+                <p>${order.description}</p>
+                <p>Тип: ${order.deliveryType}</p>
+                <p>Время: ${order.deliveryTime}</p>
+                <p>Пожелания: ${order.wishes}</p>
+                <button onclick="respondToOrder(${order.id})">Откликнуться</button>
+            `;
+            ordersContainer.appendChild(orderDiv);
+        });
+    }
+
+    function respondToOrder(orderId) {
+        let proposedPrice = prompt("Введите вашу цену за выполнение:");
+        let comment = prompt("Введите комментарий для клиента (необязательно):");
+
+        if (proposedPrice !== null) {
+            let response = {
+                action: "respond_order",
+                orderId: orderId,
+                price: proposedPrice,
+                comment: comment || ""
+            };
+            Telegram.WebApp.sendData(JSON.stringify(response));
+        }
+    }
+
+    renderOrders();
+</script>
+
+</body>
+</html>
