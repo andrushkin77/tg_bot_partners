@@ -13,32 +13,39 @@
         tg.expand();
 
         function loadOrders() {
-            fetch(`https://72o7nj-185-77-216-4.ru.tuna.am/api/orders?telegram_id=${tg.initDataUnsafe.user.id}`, {
-                method: 'GET'
+            fetch("https://af6ra1-185-77-216-4.ru.tuna.am/api/orders", {
+                method: "GET"
             })
             .then(response => response.json())
-            .then(orders => {
+            .then(data => {
+                if (data.status !== "success") {
+                    alert("Ошибка загрузки заказов: " + data.message);
+                    return;
+                }
+
+                const orders = data.orders;
                 const container = document.getElementById('orders-container');
                 container.innerHTML = '';
 
                 if (orders.length === 0) {
-                    container.innerHTML = '<p>Пока заказов нет.</p>';
-                } else {
-                    orders.forEach(order => {
-                        const orderDiv = document.createElement('div');
-                        orderDiv.innerHTML = `
-                            <div style="border: 1px solid #ddd; padding: 10px; margin-bottom: 10px;">
-                                <strong>Заказ #${order.id}</strong><br>
-                                Описание: ${order.description}<br>
-                                Пожелания: ${order.wishes}<br>
-                                Доставка: ${order.delivery_type} - ${order.delivery_time}<br>
-                                Комментарий: ${order.comment}<br><br>
-                                <button onclick="respondToOrder(${order.id})">Откликнуться</button>
-                            </div>
-                        `;
-                        container.appendChild(orderDiv);
-                    });
+                    container.innerHTML = '<p>Пока нет новых заказов.</p>';
+                    return;
                 }
+
+                orders.forEach(order => {
+                    const orderDiv = document.createElement('div');
+                    orderDiv.innerHTML = `
+                        <div style="border: 1px solid #ddd; padding: 10px; margin-bottom: 10px;">
+                            <strong>Заказ #${order.id}</strong><br>
+                            Описание: ${order.description}<br>
+                            Пожелания: ${order.wishes}<br>
+                            Доставка: ${order.delivery_type} - ${order.delivery_time}<br>
+                            Комментарий: ${order.comment}<br><br>
+                            <button onclick="respondToOrder(${order.id})">Откликнуться</button>
+                        </div>
+                    `;
+                    container.appendChild(orderDiv);
+                });
             })
             .catch(() => {
                 document.getElementById('orders-container').innerHTML = 'Ошибка загрузки заказов.';
@@ -49,25 +56,8 @@
             const price = prompt('Введите цену за выполнение заказа:');
             const comment = prompt('Добавьте комментарий (необязательно):');
 
-            fetch('https://72o7nj-185-77-216-4.ru.tuna.am/api/respond', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+            fetch("https://af6ra1-185-77-216-4.ru.tuna.am/api/respond", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({
-                    telegram_id: tg.initDataUnsafe.user.id,
-                    order_id: orderId,
-                    price: price,
-                    comment: comment
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert(data.message);
-                loadOrders();
-            })
-            .catch(() => alert('Ошибка отправки ответа.'));
-        }
-
-        loadOrders();
-    </script>
-</body>
-</html>
+                    partner_id:
