@@ -6,14 +6,15 @@
 </head>
 <body>
     <h2>Регистрация партнера</h2>
-    <label>Название: <input type="text" id="name"></label><br><br>
-    <label>Город: <input type="text" id="city"></label><br><br>
-    <label>Адрес: <input type="text" id="address"></label><br><br>
-    <label>Email: <input type="email" id="email"></label><br><br>
-    <label>Пароль: <input type="password" id="password"></label><br><br>
-    <label>Описание: <textarea id="description"></textarea></label><br><br>
-
-    <button onclick="register()">Зарегистрироваться</button>
+    <form id="registerForm">
+        Название: <input type="text" id="name"><br>
+        Город: <input type="text" id="city"><br>
+        Адрес: <input type="text" id="address"><br>
+        Описание: <input type="text" id="description"><br>
+        Email: <input type="email" id="email"><br>
+        Пароль: <input type="password" id="password"><br>
+        <button type="button" onclick="register()">Зарегистрироваться</button>
+    </form>
 
     <script>
         let tg = window.Telegram.WebApp;
@@ -25,27 +26,27 @@
                 name: document.getElementById('name').value,
                 city: document.getElementById('city').value,
                 address: document.getElementById('address').value,
+                description: document.getElementById('description').value,
                 email: document.getElementById('email').value,
                 password: document.getElementById('password').value,
-                description: document.getElementById('description').value,
-                photos: []  // Пока не добавляем фото
+                photos: []  // Пока фото не добавляем
             };
 
-            fetch("https://72o7nj-185-77-216-4.ru.tuna.am/api/register", {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+            fetch("https://af6ra1-185-77-216-4.ru.tuna.am/api/register", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
                 body: JSON.stringify(data)
             })
             .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    tg.sendData(JSON.stringify({action: 'register_success'}));
+            .then(result => {
+                if (result.status === "success") {
+                    alert("Вы успешно зарегистрированы!");
                     tg.close();
                 } else {
-                    alert(data.message);
+                    alert(result.message);
                 }
             })
-            .catch(() => alert('Ошибка связи с сервером.'));
+            .catch(() => alert("Ошибка связи с сервером."));
         }
     </script>
 </body>
