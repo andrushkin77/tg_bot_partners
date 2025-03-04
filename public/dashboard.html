@@ -1,70 +1,73 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
     <title>Личный кабинет партнера</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
-        .order { background: white; padding: 15px; margin: 10px 0; border: 1px solid #ccc; }
-        button { padding: 8px; margin-top: 5px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
-    </style>
 </head>
 <body>
+    <h2>Ваши заказы</h2>
+    <div id="orders-container">Загрузка...</div>
 
-<h2>Личный кабинет</h2>
-<div id="ordersContainer">Загрузка заказов...</div>
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand();
 
-<script>
-let tg = window.Telegram.WebApp;
-tg.expand();
+        function loadOrders() {
+            fetch(`https://yu7zvk-185-77-216-4.ru.tuna.am/api/orders?telegram_id=${tg.initDataUnsafe.user.id}`, {
+                method: 'GET'
+            })
+            .then(response => response.json())
+            .then(orders => {
+                const container = document.getElementById('orders-container');
+                container.innerHTML = '';
 
-function loadOrders() {
-    fetch("https://as5c4b-185-77-216-4.ru.tuna.am/api/orders", {  // здесь подставишь свой backend для загрузки заказов
-        method: "GET",
-    }).then(response => response.json()).then(data => {
-        const container = document.getElementById("ordersContainer");
-        container.innerHTML = "";
-
-        if (data.length === 0) {
-            container.innerHTML = "Пока нет заказов.";
-            return;
+                if (orders.length === 0) {
+                    container.innerHTML = '<p>Пока заказов нет.</p>';
+                } else {
+                    orders.forEach(order => {
+                        const orderDiv = document.createElement('div');
+                        orderDiv.innerHTML = `
+                            <div style="border: 1px solid #ddd; padding: 10px; margin-bottom: 10px;">
+                                <strong>Заказ #${order.id}</strong><br>
+                                Описание: ${order.description}<br>
+                                Пожелания: ${order.wishes}<br>
+                                Доставка: ${order.delivery_type} - ${order.delivery_time}<br>
+                                Комментарий: ${order.comment}<br><br>
+                                <button onclick="respondToOrder(${order.id})">Откликнуться</button>
+                            </div>
+                        `;
+                        container.appendChild(orderDiv);
+                    });
+                }
+            })
+            .catch(() => {
+                document.getElementById('orders-container').innerHTML = 'Ошибка загрузки заказов.';
+            });
         }
 
-        data.forEach(order => {
-            let div = document.createElement("div");
-            div.className = "order";
-            div.innerHTML = `
-                <strong>Заказ №${order.id}</strong><br>
-                Город: ${order.city}<br>
-                Описание: ${order.description}<br>
-                <img src="${order.image_url}" style="width: 100%; margin: 5px 0;"><br>
-                <textarea id="comment-${order.id}" placeholder="Комментарий для клиента"></textarea>
-                <button onclick="acceptOrder(${order.id})">Взять в работу</button>
-            `;
-            container.appendChild(div);
-        });
-    }).catch(error => {
-        document.getElementById("ordersContainer").innerText = "Ошибка загрузки заказов.";
-    });
-}
+        function respondToOrder(orderId) {
+            const price = prompt('Введите цену за выполнение заказа:');
+            const comment = prompt('Добавьте комментарий (необязательно):');
 
-function acceptOrder(orderId) {
-    let comment = document.getElementById(`comment-${orderId}`).value;
+            fetch('https://yu7zvk-185-77-216-4.ru.tuna.am/api/respond', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    telegram_id: tg.initDataUnsafe.user.id,
+                    order_id: orderId,
+                    price: price,
+                    comment: comment
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                loadOrders();
+            })
+            .catch(() => alert('Ошибка отправки ответа.'));
+        }
 
-    let data = {
-        action: "accept_order",
-        order_id: orderId,
-        comment: comment,
-        price: prompt("Введите стоимость выполнения заказа")
-    };
-
-    Telegram.WebApp.sendData(JSON.stringify(data));
-    Telegram.WebApp.close();
-}
-
-loadOrders();
-</script>
-
+        loadOrders();
+    </script>
 </body>
 </html>
