@@ -13,7 +13,7 @@
         tg.expand();
 
         function loadOrders() {
-            fetch(`https://yu7zvk-185-77-216-4.ru.tuna.am/api/orders?telegram_id=${tg.initDataUnsafe.user.id}`, {
+            fetch(`https://72o7nj-185-77-216-4.ru.tuna.am/api/orders?telegram_id=${tg.initDataUnsafe.user.id}`, {
                 method: 'GET'
             })
             .then(response => response.json())
@@ -49,7 +49,7 @@
             const price = prompt('Введите цену за выполнение заказа:');
             const comment = prompt('Добавьте комментарий (необязательно):');
 
-            fetch('https://yu7zvk-185-77-216-4.ru.tuna.am/api/respond', {
+            fetch('https://72o7nj-185-77-216-4.ru.tuna.am/api/respond', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
