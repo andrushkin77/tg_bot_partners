@@ -13,11 +13,13 @@
         tg.expand();
 
         function loadOrders() {
-            fetch(`https://98c4ix-185-77-216-4.ru.tuna.am/api/orders`, {
-                method: "GET"
-            })
+            const apiUrl = "https://gq292r-185-77-216-4.ru.tuna.am/api/orders?telegram_id=" + tg.initDataUnsafe.user.id;
+
+            fetch(apiUrl, { method: "GET" })
             .then(response => response.json())
             .then(data => {
+                console.log("📥 Получен ответ от сервера:", data);  // Лог для отладки
+
                 if (data.status !== "success") {
                     alert("Ошибка загрузки заказов: " + data.message);
                     return;
@@ -47,7 +49,8 @@
                     container.appendChild(orderDiv);
                 });
             })
-            .catch(() => {
+            .catch(error => {
+                console.error("❌ Ошибка при загрузке:", error);
                 document.getElementById('orders-container').innerHTML = 'Ошибка загрузки заказов.';
             });
         }
@@ -56,11 +59,13 @@
             const price = prompt('Введите цену за выполнение заказа:');
             const comment = prompt('Добавьте комментарий (необязательно):');
 
-            fetch("https://98c4ix-185-77-216-4.ru.tuna.am/api/respond", {
+            const apiUrl = "https://gq292r-185-77-216-4.ru.tuna.am/api/respond";
+
+            fetch(apiUrl, {
                 method: "POST",
-                headers: {"Content-Type": "application/json"},
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    partner_id: tg.initDataUnsafe.user.id,
+                    telegram_id: tg.initDataUnsafe.user.id,
                     order_id: orderId,
                     price: price,
                     comment: comment
