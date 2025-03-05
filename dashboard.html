@@ -13,7 +13,7 @@
         tg.expand();
 
         function loadOrders() {
-            fetch("https://af6ra1-185-77-216-4.ru.tuna.am/api/orders", {
+            fetch(`https://98c4ix-185-77-216-4.ru.tuna.am/api/orders`, {
                 method: "GET"
             })
             .then(response => response.json())
@@ -56,8 +56,25 @@
             const price = prompt('Введите цену за выполнение заказа:');
             const comment = prompt('Добавьте комментарий (необязательно):');
 
-            fetch("https://af6ra1-185-77-216-4.ru.tuna.am/api/respond", {
+            fetch("https://98c4ix-185-77-216-4.ru.tuna.am/api/respond", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({
-                    partner_id:
+                    partner_id: tg.initDataUnsafe.user.id,
+                    order_id: orderId,
+                    price: price,
+                    comment: comment
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                loadOrders();
+            })
+            .catch(() => alert('Ошибка отправки отклика.'));
+        }
+
+        loadOrders();
+    </script>
+</body>
+</html>
