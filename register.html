@@ -1,3 +1,4 @@
+<!-- register.html -->
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -11,6 +12,11 @@
         Город: <input type="text" id="city"><br>
         Адрес: <input type="text" id="address"><br>
         Описание: <input type="text" id="description"><br>
+        <br>
+        Ссылка на карту (Яндекс / 2ГИС): <input type="text" id="map_link"><br>
+        Ссылка на ВК: <input type="text" id="vk_link"><br>
+        Ссылка на Telegram: <input type="text" id="tg_link"><br>
+        <br>
         Email: <input type="email" id="email"><br>
         Пароль: <input type="password" id="password"><br>
         <button type="button" onclick="register()">Зарегистрироваться</button>
@@ -27,9 +33,12 @@
                 city: document.getElementById('city').value,
                 address: document.getElementById('address').value,
                 description: document.getElementById('description').value,
+                map_link: document.getElementById('map_link').value,
+                vk_link: document.getElementById('vk_link').value,
+                tg_link: document.getElementById('tg_link').value,
                 email: document.getElementById('email').value,
                 password: document.getElementById('password').value,
-                photos: []  // Пока фото не добавляем
+                photos: []  // пока пустой массив
             };
 
             fetch("https://fiwizd-149-40-52-113.ru.tuna.am/api/register", {
