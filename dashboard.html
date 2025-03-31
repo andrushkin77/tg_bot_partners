@@ -13,7 +13,7 @@
         tg.expand();
 
         function loadOrders() {
-            const apiUrl = "https://u2dd9q-169-150-209-165.ru.tuna.am/api/orders?telegram_id=" + tg.initDataUnsafe.user.id;
+            const apiUrl = "https://i8ikjw-169-150-209-165.ru.tuna.am/api/orders?telegram_id=" + tg.initDataUnsafe.user.id;
 
             fetch(apiUrl, { method: "GET" })
             .then(response => response.json())
@@ -59,7 +59,7 @@
             const price = prompt('Введите цену за выполнение заказа:');
             const comment = prompt('Добавьте комментарий (необязательно):');
 
-            const apiUrl = "https://u2dd9q-169-150-209-165.ru.tuna.am/api/respond";
+            const apiUrl = "https://i8ikjw-169-150-209-165.ru.tuna.am/api/respond";
 
             fetch(apiUrl, {
                 method: "POST",
