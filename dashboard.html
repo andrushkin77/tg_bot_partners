@@ -57,7 +57,8 @@
         }
 
         function viewDetails(orderId) {
-            window.location.href = "order_detail_partner.html?order_id=" + orderId;
+            const partnerId = localStorage.getItem("partner_id");
+            window.location.href = "order_detail_partner.html?order_id=" + orderId + "&partner_id=" + partnerId;
         }
 
         function respondToOrder(orderId) {
