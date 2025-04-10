@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Личный кабинет партнёра</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { background-color: #161616; color: #fff; font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+        .container { max-width: 500px; margin: 0 auto; background: #1e1e1e; border-radius: 10px; padding: 20px; }
+        h2 { margin-bottom: 15px; font-size: 20px; }
+        .order-card { border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; }
+        .order-card button { margin-right: 5px; padding: 5px 10px; border: none; border-radius: 5px; cursor: pointer; }
+        .details-btn { background: #32CD32; color: #fff; }
+        .respond-btn { background: #FFA500; color: #fff; }
+    </style>
+</head>
+<body>
+    <h2>Ваши заказы</h2>
+    <div id="orders-container">Загрузка...</div>
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+        function loadOrders() {
+            const apiUrl = "https://gex90e-95-164-118-165.ru.tuna.am/api/orders?telegram_id=" + tg.initDataUnsafe.user.id;
+            fetch(apiUrl, { method: "GET" })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status !== "success") {
+                    alert("Ошибка загрузки заказов: " + data.message);
+                    return;
+                }
+                const orders = data.orders;
+                const container = document.getElementById('orders-container');
+                container.innerHTML = '';
+                if (orders.length === 0) {
+                    container.innerHTML = '<p>Пока нет новых заказов.</p>';
+                    return;
+                }
+                orders.forEach(order => {
+                    const orderDiv = document.createElement('div');
+                    orderDiv.className = 'order-card';
+                    orderDiv.innerHTML = `
+                        <strong>Заказ #${order.id}</strong><br>
+                        Описание: ${order.description}<br>
+                        Пожелания: ${order.wishes}<br>
+                        Доставка: ${order.delivery_type} – ${order.delivery_time}<br>
+                        <button class="details-btn" onclick="viewDetails(${order.id})">Смотреть детали</button>
+                        <button class="respond-btn" onclick="respondToOrder(${order.id})">Откликнуться</button>
+                    `;
+                    container.appendChild(orderDiv);
+                });
+            })
+            .catch(error => {
+                console.error("❌ Ошибка при загрузке:", error);
+                document.getElementById('orders-container').innerHTML = 'Ошибка загрузки заказов.';
+            });
+        }
+
+        function viewDetails(orderId) {
+            window.location.href = "order_detail_partner.html?order_id=" + orderId;
+        }
+
+        function respondToOrder(orderId) {
+            const price = prompt("Введите цену за выполнение заказа:");
+            const comment = prompt("Добавьте комментарий (необязательно):");
+            fetch("https://gex90e-95-164-118-165.ru.tuna.am/api/respond", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    telegram_id: tg.initDataUnsafe.user.id,
+                    order_id: orderId,
+                    price: price,
+                    comment: comment
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                loadOrders();
+            })
+            .catch(() => alert('Ошибка отправки отклика.'));
+        }
+        loadOrders();
+    </script>
+</body>
+</html>
