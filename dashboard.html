@@ -21,7 +21,7 @@
         let tg = window.Telegram.WebApp;
         tg.expand();
         function loadOrders() {
-            const apiUrl = "https://gex90e-95-164-118-165.ru.tuna.am/api/orders?telegram_id=" + tg.initDataUnsafe.user.id;
+            const apiUrl = "https://v3v26y-95-164-118-165.ru.tuna.am/api/orders?telegram_id=" + tg.initDataUnsafe.user.id;
             fetch(apiUrl, { method: "GET" })
             .then(response => response.json())
             .then(data => {
@@ -64,7 +64,7 @@
         function respondToOrder(orderId) {
             const price = prompt("Введите цену за выполнение заказа:");
             const comment = prompt("Добавьте комментарий (необязательно):");
-            fetch("https://gex90e-95-164-118-165.ru.tuna.am/api/respond", {
+            fetch("https://v3v26y-95-164-118-165.ru.tuna.am/api/respond", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
