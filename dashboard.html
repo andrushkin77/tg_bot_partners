@@ -21,7 +21,7 @@
         let tg = window.Telegram.WebApp;
         tg.expand();
         function loadOrders() {
-            const apiUrl = "https://v3v26y-95-164-118-165.ru.tuna.am/api/orders?telegram_id=" + tg.initDataUnsafe.user.id;
+            const apiUrl = "https://mqnl9l-2a02-6ea0-c71c-8--3.ru.tuna.am/api/orders?telegram_id=" + tg.initDataUnsafe.user.id;
             fetch(apiUrl, { method: "GET" })
             .then(response => response.json())
             .then(data => {
@@ -55,16 +55,15 @@
                 document.getElementById('orders-container').innerHTML = 'Ошибка загрузки заказов.';
             });
         }
-
         function viewDetails(orderId) {
+            // Считываем partner_id из localStorage (его мы сохраняем при логине)
             const partnerId = localStorage.getItem("partner_id");
             window.location.href = "order_detail_partner.html?order_id=" + orderId + "&partner_id=" + partnerId;
         }
-
         function respondToOrder(orderId) {
             const price = prompt("Введите цену за выполнение заказа:");
             const comment = prompt("Добавьте комментарий (необязательно):");
-            fetch("https://v3v26y-95-164-118-165.ru.tuna.am/api/respond", {
+            fetch("https://mqnl9l-2a02-6ea0-c71c-8--3.ru.tuna.am/api/respond", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
