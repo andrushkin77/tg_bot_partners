@@ -8,6 +8,8 @@
         body { background-color: #161616; color: #fff; font-family: Arial, sans-serif; margin: 0; padding: 20px; }
         .container { max-width: 500px; margin: 0 auto; background: #1e1e1e; border-radius: 10px; padding: 20px; }
         h2 { margin-bottom: 15px; font-size: 20px; }
+        .tabs { margin-bottom: 20px; }
+        .tabs button { padding: 10px; margin-right: 5px; border: none; border-radius: 5px; cursor: pointer; }
         .order-card { border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; }
         .order-card button { margin-right: 5px; padding: 5px 10px; border: none; border-radius: 5px; cursor: pointer; }
         .details-btn { background: #32CD32; color: #fff; }
@@ -15,13 +17,21 @@
     </style>
 </head>
 <body>
-    <h2>Ваши заказы</h2>
+    <h2>Личный кабинет партнёра</h2>
+    <div class="tabs">
+        <button onclick="loadOrders('pending')">Поступающие заказы</button>
+        <button onclick="loadOrders('review')">Заказы на рассмотрении</button>
+        <button onclick="loadOrders('in_progress')">Заказы на исполнении</button>
+    </div>
     <div id="orders-container">Загрузка...</div>
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
-        function loadOrders() {
-            const apiUrl = "https://cbw7lj-169-150-209-165.ru.tuna.am/api/orders?telegram_id=" + tg.initDataUnsafe.user.id;
+
+        // Функция для загрузки заказов по статусу
+        function loadOrders(status = 'pending') {
+            const partnerId = localStorage.getItem("partner_id");
+            const apiUrl = "https://mqnl9l-2a02-6ea0-c71c-8--3.ru.tuna.am/api/orders?status=" + status;
             fetch(apiUrl, { method: "GET" })
             .then(response => response.json())
             .then(data => {
@@ -33,7 +43,7 @@
                 const container = document.getElementById('orders-container');
                 container.innerHTML = '';
                 if (orders.length === 0) {
-                    container.innerHTML = '<p>Пока нет новых заказов.</p>';
+                    container.innerHTML = '<p>Пока нет заказов.</p>';
                     return;
                 }
                 orders.forEach(order => {
@@ -51,19 +61,20 @@
                 });
             })
             .catch(error => {
-                console.error("❌ Ошибка при загрузке:", error);
+                console.error("Ошибка при загрузке заказов:", error);
                 document.getElementById('orders-container').innerHTML = 'Ошибка загрузки заказов.';
             });
         }
+
         function viewDetails(orderId) {
-            // Считываем partner_id из localStorage (его мы сохраняем при логине)
             const partnerId = localStorage.getItem("partner_id");
             window.location.href = "order_detail_partner.html?order_id=" + orderId + "&partner_id=" + partnerId;
         }
+
         function respondToOrder(orderId) {
             const price = prompt("Введите цену за выполнение заказа:");
             const comment = prompt("Добавьте комментарий (необязательно):");
-            fetch("https://cbw7lj-169-150-209-165.ru.tuna.am/api/respond", {
+            fetch("https://mqnl9l-2a02-6ea0-c71c-8--3.ru.tuna.am/api/respond", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -76,11 +87,13 @@
             .then(response => response.json())
             .then(data => {
                 alert(data.message);
-                loadOrders();
+                loadOrders(); // перезагружаем заказы
             })
             .catch(() => alert('Ошибка отправки отклика.'));
         }
-        loadOrders();
+        
+        // При загрузке по умолчанию показываем "Поступающие заказы"
+        loadOrders('pending');
     </script>
 </body>
 </html>
