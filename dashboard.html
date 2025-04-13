@@ -28,10 +28,9 @@
         let tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Функция для загрузки заказов по статусу
         function loadOrders(status = 'pending') {
             const partnerId = localStorage.getItem("partner_id");
-            const apiUrl = "https://m0rwro-79-127-211-217.ru.tuna.am/api/orders?status=" + status;
+            const apiUrl = "https://e5gxi6-79-127-211-217.ru.tuna.am/api/orders?status=" + status;
             fetch(apiUrl, { method: "GET" })
             .then(response => response.json())
             .then(data => {
@@ -74,7 +73,7 @@
         function respondToOrder(orderId) {
             const price = prompt("Введите цену за выполнение заказа:");
             const comment = prompt("Добавьте комментарий (необязательно):");
-            fetch("https://m0rwro-79-127-211-217.ru.tuna.am/api/respond", {
+            fetch("https://e5gxi6-79-127-211-217.ru.tuna.am/api/respond", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -87,12 +86,11 @@
             .then(response => response.json())
             .then(data => {
                 alert(data.message);
-                loadOrders(); // перезагружаем заказы
+                loadOrders();
             })
             .catch(() => alert('Ошибка отправки отклика.'));
         }
         
-        // При загрузке по умолчанию показываем "Поступающие заказы"
         loadOrders('pending');
     </script>
 </body>
