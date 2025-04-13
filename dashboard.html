@@ -31,7 +31,7 @@
         // Функция для загрузки заказов по статусу
         function loadOrders(status = 'pending') {
             const partnerId = localStorage.getItem("partner_id");
-            const apiUrl = "https://mqnl9l-2a02-6ea0-c71c-8--3.ru.tuna.am/api/orders?status=" + status;
+            const apiUrl = "https://m0rwro-79-127-211-217.ru.tuna.am/api/orders?status=" + status;
             fetch(apiUrl, { method: "GET" })
             .then(response => response.json())
             .then(data => {
@@ -74,7 +74,7 @@
         function respondToOrder(orderId) {
             const price = prompt("Введите цену за выполнение заказа:");
             const comment = prompt("Добавьте комментарий (необязательно):");
-            fetch("https://mqnl9l-2a02-6ea0-c71c-8--3.ru.tuna.am/api/respond", {
+            fetch("https://m0rwro-79-127-211-217.ru.tuna.am/api/respond", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
