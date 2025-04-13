@@ -10,26 +10,34 @@
     img { width: 100%; border-radius: 10px; }
     .info { margin-top: 20px; }
     .info p { margin: 10px 0; }
-    button { background: #32CD32; color: #fff; border: none; border-radius: 5px; padding: 10px; margin-top: 20px; cursor: pointer; width: 100%; }
+    .buttons { margin-top: 20px; display: flex; justify-content: space-between; }
+    button { background: #32CD32; color: #fff; border: none; border-radius: 5px; padding: 10px; cursor: pointer; flex-grow: 1; margin: 0 5px; }
   </style>
 </head>
 <body>
 <div class="container">
+  <button onclick="goBack()" style="background: none; color: #32CD32; border: none; font-size: 16px; text-decoration: underline; margin-bottom: 10px;">← Назад</button>
   <h2>Детали заказа</h2>
   <img id="orderImage" src="" alt="Фото заказа">
   <div class="info">
     <p id="orderDescription">Описание: </p>
     <p id="orderWishes">Пожелания: </p>
     <p id="orderDelivery">Доставка: </p>
+    <!-- Теперь выводим поле recipient_name, а не customer_name -->
     <p id="orderCustomer">Заказчик: </p>
   </div>
-  <button id="respondBtn">Откликнуться на заказ</button>
+  <div class="buttons">
+    <button onclick="respondToOrder()">Откликнуться на заказ</button>
+    <button onclick="goBack()">Вернуться к заказам</button>
+  </div>
 </div>
 <script>
   const urlParams = new URLSearchParams(window.location.search);
   const orderId = urlParams.get('order_id');
-  const apiBase = "https://cbw7lj-169-150-209-165.ru.tuna.am/api";
+  const partnerId = urlParams.get('partner_id');  // если нужно использовать для фильтрации
+  const apiBase = "https://mqnl9l-2a02-6ea0-c71c-8--3.ru.tuna.am/api";
   const partnerTelegramId = localStorage.getItem("partner_telegram_id") || "";
+
   function loadOrderDetails() {
     fetch(`${apiBase}/order_details?order_id=${orderId}`)
       .then(res => res.json())
@@ -43,12 +51,14 @@
         document.getElementById('orderDescription').innerText = "Описание: " + order.description;
         document.getElementById('orderWishes').innerText = "Пожелания: " + order.wishes;
         document.getElementById('orderDelivery').innerText = "Доставка: " + (order.delivery_type || "Не указана") + " – " + (order.delivery_time || "");
-        document.getElementById('orderCustomer').innerText = "Заказчик: " + (order.customer_name || "Не указан");
+        // Используем данные, которые ввёл клиент (поле recipient_name)
+        document.getElementById('orderCustomer').innerText = "Заказчик: " + (order.recipient_name || "Не указан");
       })
       .catch(() => alert("Ошибка при загрузке данных заказа."));
   }
   loadOrderDetails();
-  document.getElementById('respondBtn').addEventListener('click', () => {
+
+  function respondToOrder() {
     const price = prompt("Введите цену за выполнение заказа:");
     const comment = prompt("Добавьте комментарий (необязательно):");
     fetch(`${apiBase}/respond`, {
@@ -64,9 +74,15 @@
     .then(res => res.json())
     .then(data => {
       alert(data.message);
+      // После отклика можно возвращаться на страницу с заказами:
+      window.location.href = "dashboard.html";
     })
     .catch(() => alert("Ошибка отправки отклика."));
-  });
+  }
+
+  function goBack() {
+    window.location.href = "dashboard.html";
+  }
 </script>
 </body>
 </html>
