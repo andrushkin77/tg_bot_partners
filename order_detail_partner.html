@@ -23,7 +23,6 @@
     <p id="orderDescription">Описание: </p>
     <p id="orderWishes">Пожелания: </p>
     <p id="orderDelivery">Доставка: </p>
-    <!-- Теперь выводим поле recipient_name, а не customer_name -->
     <p id="orderCustomer">Заказчик: </p>
   </div>
   <div class="buttons">
@@ -34,8 +33,8 @@
 <script>
   const urlParams = new URLSearchParams(window.location.search);
   const orderId = urlParams.get('order_id');
-  const partnerId = urlParams.get('partner_id');  // если нужно использовать для фильтрации
-  const apiBase = "https://m0rwro-79-127-211-217.ru.tuna.am/api";
+  const partnerId = urlParams.get('partner_id');
+  const apiBase = "https://e5gxi6-79-127-211-217.ru.tuna.am/api";
   const partnerTelegramId = localStorage.getItem("partner_telegram_id") || "";
 
   function loadOrderDetails() {
@@ -51,7 +50,6 @@
         document.getElementById('orderDescription').innerText = "Описание: " + order.description;
         document.getElementById('orderWishes').innerText = "Пожелания: " + order.wishes;
         document.getElementById('orderDelivery').innerText = "Доставка: " + (order.delivery_type || "Не указана") + " – " + (order.delivery_time || "");
-        // Используем данные, которые ввёл клиент (поле recipient_name)
         document.getElementById('orderCustomer').innerText = "Заказчик: " + (order.recipient_name || "Не указан");
       })
       .catch(() => alert("Ошибка при загрузке данных заказа."));
@@ -74,7 +72,6 @@
     .then(res => res.json())
     .then(data => {
       alert(data.message);
-      // После отклика можно возвращаться на страницу с заказами:
       window.location.href = "dashboard.html";
     })
     .catch(() => alert("Ошибка отправки отклика."));
