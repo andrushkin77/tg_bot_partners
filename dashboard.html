@@ -9,7 +9,19 @@
         .container { max-width: 500px; margin: 0 auto; background: #1e1e1e; border-radius: 10px; padding: 20px; }
         h2 { margin-bottom: 15px; font-size: 20px; }
         .tabs { margin-bottom: 20px; }
-        .tabs button { padding: 10px; margin-right: 5px; border: none; border-radius: 5px; cursor: pointer; }
+        .tabs button {
+          padding: 10px; 
+          margin-right: 5px; 
+          border: none; 
+          border-radius: 5px; 
+          cursor: pointer;
+          background: #333; 
+          color: #fff;
+        }
+        .tabs button.active {
+          background: #32CD32; /* Активная вкладка — зелёная */
+          color: #fff;
+        }
         .order-card { border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; }
         .order-card button { margin-right: 5px; padding: 5px 10px; border: none; border-radius: 5px; cursor: pointer; }
         .details-btn { background: #32CD32; color: #fff; }
@@ -19,18 +31,38 @@
 <body>
     <h2>Личный кабинет партнёра</h2>
     <div class="tabs">
-        <button onclick="loadOrders('pending')">Поступающие заказы</button>
-        <button onclick="loadOrders('review')">Заказы на рассмотрении</button>
-        <button onclick="loadOrders('in_progress')">Заказы на исполнении</button>
+        <button id="tabPending" onclick="loadOrders('pending')">Поступающие заказы</button>
+        <button id="tabReview" onclick="loadOrders('review')">Заказы на рассмотрении</button>
+        <button id="tabInProgress" onclick="loadOrders('in_progress')">Заказы на исполнении</button>
     </div>
     <div id="orders-container">Загрузка...</div>
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
 
+        const apiBase = "https://ygqury-95-164-118-165.ru.tuna.am/api";
+        const tabPending = document.getElementById('tabPending');
+        const tabReview = document.getElementById('tabReview');
+        const tabInProgress = document.getElementById('tabInProgress');
+
+        function clearActive() {
+          tabPending.classList.remove('active');
+          tabReview.classList.remove('active');
+          tabInProgress.classList.remove('active');
+        }
+
         function loadOrders(status = 'pending') {
+            clearActive();
+            if (status === 'pending') {
+              tabPending.classList.add('active');
+            } else if (status === 'review') {
+              tabReview.classList.add('active');
+            } else if (status === 'in_progress') {
+              tabInProgress.classList.add('active');
+            }
+
             const partnerId = localStorage.getItem("partner_id");
-            const apiUrl = "https://ygqury-95-164-118-165.ru.tuna.am/api/orders?status=" + status;
+            const apiUrl = apiBase + "/orders?status=" + status;
             fetch(apiUrl, { method: "GET" })
             .then(response => response.json())
             .then(data => {
@@ -73,7 +105,7 @@
         function respondToOrder(orderId) {
             const price = prompt("Введите цену за выполнение заказа:");
             const comment = prompt("Добавьте комментарий (необязательно):");
-            fetch("https://ygqury-95-164-118-165.ru.tuna.am/api/respond", {
+            fetch(apiBase + "/respond", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -86,7 +118,7 @@
             .then(response => response.json())
             .then(data => {
                 alert(data.message);
-                loadOrders();
+                loadOrders(); // перезагружаем заказы на текущем статусе
             })
             .catch(() => alert('Ошибка отправки отклика.'));
         }
