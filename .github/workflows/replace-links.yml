@@ -1,13 +1,13 @@
-name: Replace URLs Everywhere
+name: Replace Base URLs in Code
 
 on:
   workflow_dispatch:
     inputs:
       old_url:
-        description: "Старая ссылка"
+        description: "Старая базовая ссылка"
         required: true
       new_url:
-        description: "Новая ссылка"
+        description: "Новая базовая ссылка"
         required: true
 
 jobs:
@@ -18,18 +18,27 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Replace URLs (экран спецсимволов, без .github/workflows)
+      - name: Replace URLs inside strings (JS, HTML, etc.)
         run: |
           echo "Заменяем: ${{ github.event.inputs.old_url }} → ${{ github.event.inputs.new_url }}"
 
           OLD=$(printf '%s\n' "${{ github.event.inputs.old_url }}" | sed -e 's/[]\/$*.^[]/\\&/g')
           NEW="${{ github.event.inputs.new_url }}"
 
-          find . \
+          echo "🔍 Ищем файлы с вхождением $OLD..."
+
+          FILES=$(find . \
             -type f \
-            \( -name "*.html" -o -name "*.js" -o -name "*.ts" -o -name "*.md" \) \
+            \( -name "*.js" -o -name "*.ts" -o -name "*.html" -o -name "*.md" -o -name "*.json" \) \
             -not -path "./.github/workflows/*" \
-            -exec sed -i "s|$OLD|$NEW|g" {} +
+            -exec grep -l "$OLD" {} \;)
+
+          echo "📄 Найдено файлов: $(echo "$FILES" | wc -l)"
+
+          for file in $FILES; do
+            echo "⚙️ Обрабатываем: $file"
+            sed -i "s|$OLD|$NEW|g" "$file"
+          done
 
       - name: Commit and push changes
         env:
@@ -39,6 +48,6 @@ jobs:
           git config user.email "actions@github.com"
           git add -u
           git diff --quiet && echo "Нет изменений — пуш не нужен." || (
-            git commit -m "🔁 Заменил ссылки: ${{ github.event.inputs.old_url }} → ${{ github.event.inputs.new_url }}"
+            git commit -m "🔁 Заменил базовую ссылку: ${{ github.event.inputs.old_url }} → ${{ github.event.inputs.new_url }}"
             git push https://x-access-token:${TOKEN}@github.com/${{ github.repository }} HEAD:${{ github.ref_name }}
           )
