@@ -6,9 +6,11 @@ on:
       old_url:
         description: "Старая базовая ссылка"
         required: true
+        default: "https://vw63et-82-204-189-161.ru.tuna.am"
       new_url:
         description: "Новая базовая ссылка"
         required: true
+        default: "https://5uzw5q-95-164-118-165.ru.tuna.am"
 
 jobs:
   replace:
@@ -18,27 +20,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Replace URLs inside strings (JS, HTML, etc.)
+      - name: Replace Base URLs
         run: |
-          echo "Заменяем: ${{ github.event.inputs.old_url }} → ${{ github.event.inputs.new_url }}"
-
-          OLD=$(printf '%s\n' "${{ github.event.inputs.old_url }}" | sed -e 's/[]\/$*.^[]/\\&/g')
+          # Присваиваем переменным значения из параметров
+          OLD="${{ github.event.inputs.old_url }}"
           NEW="${{ github.event.inputs.new_url }}"
+          echo "Замена базовой ссылки: $OLD → $NEW"
+          
+          # Для отладки: ищем файлы, где встречается старая ссылка
+          echo "Поиск файлов, содержащих '$OLD':"
+          grep -R "$OLD" . --exclude-dir=.git --exclude-dir=.github || echo "Ничего не найдено."
 
-          echo "🔍 Ищем файлы с вхождением $OLD..."
-
-          FILES=$(find . \
-            -type f \
-            \( -name "*.js" -o -name "*.ts" -o -name "*.html" -o -name "*.md" -o -name "*.json" \) \
+          # Находим файлы нужных типов и делаем замену
+          find . -type f \( -name "*.js" -o -name "*.ts" -o -name "*.html" -o -name "*.md" -o -name "*.json" \) \
             -not -path "./.github/workflows/*" \
-            -exec grep -l "$OLD" {} \;)
-
-          echo "📄 Найдено файлов: $(echo "$FILES" | wc -l)"
-
-          for file in $FILES; do
-            echo "⚙️ Обрабатываем: $file"
-            sed -i "s|$OLD|$NEW|g" "$file"
-          done
+            -exec sed -i "s|$OLD|$NEW|g" {} +
+          
+          echo "Замена завершена."
 
       - name: Commit and push changes
         env:
@@ -47,7 +45,8 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git add -u
+          # Если изменений нет, выводим сообщение, иначе коммитим и пушим
           git diff --quiet && echo "Нет изменений — пуш не нужен." || (
-            git commit -m "🔁 Заменил базовую ссылку: ${{ github.event.inputs.old_url }} → ${{ github.event.inputs.new_url }}"
+            git commit -m "🔁 Заменены ссылки: ${{ github.event.inputs.old_url }} → ${{ github.event.inputs.new_url }}"
             git push https://x-access-token:${TOKEN}@github.com/${{ github.repository }} HEAD:${{ github.ref_name }}
           )
