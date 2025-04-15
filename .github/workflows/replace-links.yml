@@ -18,14 +18,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Replace URLs (без .github/workflows)
+      - name: Replace URLs (экран спецсимволов, без .github/workflows)
         run: |
           echo "Заменяем: ${{ github.event.inputs.old_url }} → ${{ github.event.inputs.new_url }}"
+
+          OLD=$(printf '%s\n' "${{ github.event.inputs.old_url }}" | sed -e 's/[]\/$*.^[]/\\&/g')
+          NEW="${{ github.event.inputs.new_url }}"
+
           find . \
             -type f \
             \( -name "*.html" -o -name "*.js" -o -name "*.ts" -o -name "*.md" \) \
             -not -path "./.github/workflows/*" \
-            -exec sed -i "s|${{ github.event.inputs.old_url }}|${{ github.event.inputs.new_url }}|g" {} +
+            -exec sed -i "s|$OLD|$NEW|g" {} +
 
       - name: Commit and push changes
         env:
