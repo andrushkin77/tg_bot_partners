@@ -1,16 +1,14 @@
-name: Replace Links
+name: Replace URLs Everywhere
 
 on:
   workflow_dispatch:
     inputs:
-      old_link:
-        description: 'Старая ссылка (например, https://vw63et-82-204-189-161.ru.tuna.am)'
+      old_url:
+        description: "Старая ссылка"
         required: true
-        type: string
-      new_link:
-        description: 'Новая ссылка (например, https://lt60mh-95-164-118-165.ru.tuna.am)'
+      new_url:
+        description: "Новая ссылка"
         required: true
-        type: string
 
 jobs:
   replace:
@@ -20,15 +18,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Replace old links with new ones
+      - name: Replace URLs (без .github/workflows)
         run: |
-          echo "Заменяем: ${{ inputs.old_link }} -> ${{ inputs.new_link }}"
-          find . -type f ! -path "./.git/*" -exec sed -i "s|${{ inputs.old_link }}|${{ inputs.new_link }}|g" {} +
+          echo "Заменяем: ${{ github.event.inputs.old_url }} → ${{ github.event.inputs.new_url }}"
+          find . \
+            -type f \
+            \( -name "*.html" -o -name "*.js" -o -name "*.ts" -o -name "*.md" \) \
+            -not -path "./.github/workflows/*" \
+            -exec sed -i "s|${{ github.event.inputs.old_url }}|${{ github.event.inputs.new_url }}|g" {} +
 
       - name: Commit and push changes
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          git add .
-          git commit -m "🔁 Заменил ссылки: ${{ inputs.old_link }} → ${{ inputs.new_link }}" || echo "Нет изменений для коммита"
-          git push
+          git add -u
+          git diff --quiet && echo "Нет изменений — пуш не нужен." || (
+            git commit -m "🔁 Заменил ссылки: ${{ github.event.inputs.old_url }} → ${{ github.event.inputs.new_url }}"
+            git push https://x-access-token:${TOKEN}@github.com/${{ github.repository }} HEAD:${{ github.ref_name }}
+          )
