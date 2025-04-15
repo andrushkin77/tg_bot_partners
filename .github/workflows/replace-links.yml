@@ -1,0 +1,34 @@
+name: Replace Links
+
+on:
+  workflow_dispatch:
+    inputs:
+      old_link:
+        description: 'Старая ссылка (например, https://vw63et-82-204-189-161.ru.tuna.am)'
+        required: true
+        type: string
+      new_link:
+        description: 'Новая ссылка (например, https://lt60mh-95-164-118-165.ru.tuna.am)'
+        required: true
+        type: string
+
+jobs:
+  replace:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Replace old links with new ones
+        run: |
+          echo "Заменяем: ${{ inputs.old_link }} -> ${{ inputs.new_link }}"
+          find . -type f ! -path "./.git/*" -exec sed -i "s|${{ inputs.old_link }}|${{ inputs.new_link }}|g" {} +
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add .
+          git commit -m "🔁 Заменил ссылки: ${{ inputs.old_link }} → ${{ inputs.new_link }}" || echo "Нет изменений для коммита"
+          git push
