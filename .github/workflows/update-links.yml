@@ -17,15 +17,14 @@ jobs:
     steps:
       - name: Checkout репозитория
         uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
 
       - name: Замена ссылок во всех файлах
         run: |
-          # Получаем значения переменных, переданные через ввод workflow_dispatch
           OLD_URL="${{ github.event.inputs.old_url }}"
           NEW_URL="${{ github.event.inputs.new_url }}"
           echo "Заменяем ${OLD_URL} на ${NEW_URL}"
-
-          # Ищем файлы, содержащие старую ссылку, и в каждом из них выполняем замену
           grep -rl "${OLD_URL}" . | while read file; do
             echo "Обработка файла: $file"
             sed -i "s|${OLD_URL}|${NEW_URL}|g" "$file"
@@ -35,8 +34,6 @@ jobs:
         run: |
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Action"
-
-          # Проверяем, есть ли изменения
           if [ -n "$(git status --porcelain)" ]; then
             git add .
             git commit -m "Replace ${OLD_URL} with ${NEW_URL}"
