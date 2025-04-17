@@ -14,11 +14,14 @@ on:
 jobs:
   replace-urls:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      workflows: write
     steps:
-      - name: Checkout репозитория
+      - name: Checkout repository
         uses: actions/checkout@v2
         with:
-          token: ${{ secrets.Token for GitHub Actions }}
+          token: ${{ secrets.PAT_TOKEN }}
 
       - name: Замена ссылок во всех файлах
         run: |
