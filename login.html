@@ -31,7 +31,7 @@
                 if (result.status === "success") {
                     localStorage.setItem("partner_telegram_id", result.partner.telegram_id);
                     localStorage.setItem("partner_id", result.partner.id);
-                    window.location.href = "dashboard.html";
+                    window.location.href = "cabinet.html";
                 } else {
                     alert(result.message);
                 }
