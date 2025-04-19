@@ -1,21 +1,34 @@
 <!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8">
-<title>Кабинет исполнителя</title>
+<title>Личный кабинет</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
  body{background:#161616;color:#fff;font-family:Arial;padding:20px}
- h2{text-align:center;margin-bottom:25px}
- .btn{width:100%;padding:15px;margin:10px 0;border:none;border-radius:8px;
-      font-size:16px;cursor:pointer;font-weight:bold}
- .orders{background:#32CD32;color:#fff}.profile{background:#555}
+ h2{text-align:center;margin-bottom:25px;font-size:24px}
+ .btn{width:100%;padding:15px;margin:12px 0;border:none;border-radius:8px;
+      font-size:16px;font-weight:bold;cursor:pointer}
+ .orders {background:#32CD32;color:#fff}
+ .profile{background:#555}
+ .logout {background:#aa2e2e}
 </style></head><body>
-<h2>Кабинет исполнителя</h2>
+<h2>Личный Кабинет</h2>
+
 <button class="btn orders"  onclick="location.href='dashboard.html'">Заказы</button>
-<button class="btn profile" onclick="openProfile()">Карточка исполнителя</button>
+<button class="btn profile" onclick="openProfile()">Карточка партнёра</button>
+<button class="btn logout"  onclick="logout()">Выйти</button>
 
 <script>
-Telegram.WebApp.expand();
-function openProfile(){
-  const id = localStorage.getItem('partner_id');
-  location.href = `profile_partner.html?partner_id=${id}`;
-}
-</script></body></html>
+ Telegram.WebApp.expand();
+
+ function openProfile() {
+   const id = localStorage.getItem('partner_id');
+   location.href = `profile_partner.html?partner_id=${id}`;
+ }
+
+ /* «выход» просто закрывает WebApp; при желании можно чистить localStorage */
+ function logout() {
+   localStorage.removeItem('partner_id');
+   localStorage.removeItem('partner_telegram_id');
+   Telegram.WebApp.close();
+ }
+</script>
+</body></html>
