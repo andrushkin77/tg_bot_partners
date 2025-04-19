@@ -1,55 +1,129 @@
-<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8">
-<title>Заказы</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<style>
- body{background:#161616;color:#fff;font-family:Arial;padding:20px}
- #back{background:none;border:none;color:#32CD32;font-size:18px;
-       text-decoration:underline;cursor:pointer;margin-bottom:10px}
- h2{margin-bottom:15px}
- .tabs button{padding:10px;margin-right:5px;border:none;border-radius:5px;
-              cursor:pointer;background:#333;color:#fff}
- .tabs .active{background:#32CD32}
- .order{border:1px solid #444;padding:10px;margin:10px 0;border-radius:6px}
-</style></head><body>
-<button id="back">← Назад</button>
-<h2>Заказы</h2>
-<div class="tabs">
-  <button id="tb-pending"     onclick="load('pending')">Поступающие</button>
-  <button id="tb-review"      onclick="load('review')">На рассмотрении</button>
-  <button id="tb-in_progress" onclick="load('in_progress')">В исполнении</button>
-</div>
-<div id="list">Загрузка…</div>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Личный кабинет партнёра</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { background-color: #161616; color: #fff; font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+        .container { max-width: 500px; margin: 0 auto; background: #1e1e1e; border-radius: 10px; padding: 20px; }
+        h2 { margin-bottom: 15px; font-size: 20px; }
+        .tabs { margin-bottom: 20px; }
+        .tabs button {
+          padding: 10px; 
+          margin-right: 5px; 
+          border: none; 
+          border-radius: 5px; 
+          cursor: pointer;
+          background: #333; 
+          color: #fff;
+        }
+        .tabs button.active {
+          background: #32CD32; /* Активная вкладка — зелёная */
+          color: #fff;
+        }
+        .order-card { border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; }
+        .order-card button { margin-right: 5px; padding: 5px 10px; border: none; border-radius: 5px; cursor: pointer; }
+        .details-btn { background: #32CD32; color: #fff; }
+        .respond-btn { background: #FFA500; color: #fff; }
+    </style>
+</head>
+<body>
+    <h2>Личный кабинет партнёра</h2>
+    <div class="tabs">
+        <button id="tabPending" onclick="loadOrders('pending')">Поступающие заказы</button>
+        <button id="tabReview" onclick="loadOrders('review')">Заказы на рассмотрении</button>
+        <button id="tabInProgress" onclick="loadOrders('in_progress')">Заказы на исполнении</button>
+    </div>
+    <div id="orders-container">Загрузка...</div>
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand();
 
-<script>
-const api='https://xxxm53-169-150-209-165.ru.tuna.am/api';
-const pid=localStorage.getItem('partner_id');
-Telegram.WebApp.expand();
-back.onclick=()=>location.href='cabinet.html';
+        const apiBase = "https://866m82-169-150-209-165.ru.tuna.am/api";
+        const tabPending = document.getElementById('tabPending');
+        const tabReview = document.getElementById('tabReview');
+        const tabInProgress = document.getElementById('tabInProgress');
 
-function mark(tab){
-  ['tb-pending','tb-review','tb-in_progress']
-    .forEach(id=>document.getElementById(id).classList.remove('active'));
-  document.getElementById('tb-'+tab).classList.add('active');
-}
+        function clearActive() {
+          tabPending.classList.remove('active');
+          tabReview.classList.remove('active');
+          tabInProgress.classList.remove('active');
+        }
 
-function load(status='pending'){
-  mark(status);
-  fetch(`${api}/orders?status=${status}`)
-    .then(r=>r.json()).then(d=>{
-      const box=list; box.innerHTML='';
-      if(d.orders.length===0){box.textContent='Пока нет заказов';return;}
-      d.orders.forEach(o=>{
-        const c=document.createElement('div');c.className='order';
-        c.innerHTML=`
-          <strong>#${o.id}</strong><br>
-          ${o.description}<br>
-          <button onclick="view(${o.id})">Детали</button>`;
-        box.appendChild(c);
-      });
-    });
-}
-function view(id){
-  location.href=`order_detail_partner.html?order_id=${id}&partner_id=${pid}`;
-}
-load();
-</script></body></html>
+        function loadOrders(status = 'pending') {
+            clearActive();
+            if (status === 'pending') {
+              tabPending.classList.add('active');
+            } else if (status === 'review') {
+              tabReview.classList.add('active');
+            } else if (status === 'in_progress') {
+              tabInProgress.classList.add('active');
+            }
+
+            const partnerId = localStorage.getItem("partner_id");
+            const apiUrl = apiBase + "/orders?status=" + status;
+            fetch(apiUrl, { method: "GET" })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status !== "success") {
+                    alert("Ошибка загрузки заказов: " + data.message);
+                    return;
+                }
+                const orders = data.orders;
+                const container = document.getElementById('orders-container');
+                container.innerHTML = '';
+                if (orders.length === 0) {
+                    container.innerHTML = '<p>Пока нет заказов.</p>';
+                    return;
+                }
+                orders.forEach(order => {
+                    const orderDiv = document.createElement('div');
+                    orderDiv.className = 'order-card';
+                    orderDiv.innerHTML = `
+                        <strong>Заказ #${order.id}</strong><br>
+                        Описание: ${order.description}<br>
+                        Пожелания: ${order.wishes}<br>
+                        Доставка: ${order.delivery_type} – ${order.delivery_time}<br>
+                        <button class="details-btn" onclick="viewDetails(${order.id})">Смотреть детали</button>
+                        <button class="respond-btn" onclick="respondToOrder(${order.id})">Откликнуться</button>
+                    `;
+                    container.appendChild(orderDiv);
+                });
+            })
+            .catch(error => {
+                console.error("Ошибка при загрузке заказов:", error);
+                document.getElementById('orders-container').innerHTML = 'Ошибка загрузки заказов.';
+            });
+        }
+
+        function viewDetails(orderId) {
+            const partnerId = localStorage.getItem("partner_id");
+            window.location.href = "order_detail_partner.html?order_id=" + orderId + "&partner_id=" + partnerId;
+        }
+
+        function respondToOrder(orderId) {
+            const price = prompt("Введите цену за выполнение заказа:");
+            const comment = prompt("Добавьте комментарий (необязательно):");
+            fetch(apiBase + "/respond", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    telegram_id: tg.initDataUnsafe.user.id,
+                    order_id: orderId,
+                    price: price,
+                    comment: comment
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                loadOrders(); // перезагружаем заказы на текущем статусе
+            })
+            .catch(() => alert('Ошибка отправки отклика.'));
+        }
+        
+        loadOrders('pending');
+    </script>
+</body>
+</html>

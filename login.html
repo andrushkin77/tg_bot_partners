@@ -7,49 +7,36 @@
 </head>
 <body>
     <h2>Вход в личный кабинет</h2>
-    
     <form id="loginForm">
-        <label for="email">Email:</label>
-        <input type="email" id="email" required><br><br>
-
-        <label for="password">Пароль:</label>
-        <input type="password" id="password" required><br><br>
-
+        Email: <input type="email" id="email"><br>
+        Пароль: <input type="password" id="password"><br>
         <button type="button" onclick="login()">Войти</button>
     </form>
-
     <script>
-        Telegram.WebApp.expand();
-
+        let tg = window.Telegram.WebApp;
+        tg.expand();
         function login() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-
-            const body = {
-                action: 'login',
-                email: email,
-                password: password
+            const data = {
+                action: "login",
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value
             };
-
-            fetch('https://xxxm53-169-150-209-165.ru.tuna.am/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
+            fetch("https://866m82-169-150-209-165.ru.tuna.am/api/login", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(data)
             })
             .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    localStorage.setItem('partner_id', data.partner.id);
-                    localStorage.setItem('partner_telegram_id', data.partner.telegram_id);
-                    location.href = 'cabinet.html';
+            .then(result => {
+                if (result.status === "success") {
+                    localStorage.setItem("partner_telegram_id", result.partner.telegram_id);
+                    localStorage.setItem("partner_id", result.partner.id);
+                    window.location.href = "dashboard.html";
                 } else {
-                    alert(data.message);
+                    alert(result.message);
                 }
             })
-            .catch(error => {
-                console.error('Ошибка при входе:', error);
-                alert('Произошла ошибка. Попробуйте снова.');
-            });
+            .catch(() => alert("Ошибка связи с сервером."));
         }
     </script>
 </body>
