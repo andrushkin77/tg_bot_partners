@@ -20,22 +20,22 @@
 <h2>Регистрация партнёра</h2>
 
 <label>Название компании</label>
-<input id="name" placeholder="ООО «Цветы»">
+<input id="company_name" placeholder="ООО «Цветы»">
 
 <label>Город</label>
-<input id="city" placeholder="Москва">
+<input id="partner_city" placeholder="Москва">
 
 <label>Адрес</label>
-<input id="address" placeholder="ул. Ленина 1">
+<input id="partner_address" placeholder="ул. Ленина 1">
 
 <label>Короткое описание</label>
-<textarea id="description" rows="3" placeholder="Чем вы занимаетесь"></textarea>
+<textarea id="partner_description" rows="3" placeholder="Чем вы занимаетесь"></textarea>
 
 <label>Email</label>
-<input id="email" type="email">
+<input id="partner_email" type="email">
 
 <label>Пароль</label>
-<input id="password" type="password">
+<input id="partner_password" type="password">
 
 <label>Фотографии (до 5 шт.) <small>jpeg/png/webp</small></label>
 <input id="photoInput" type="file" accept="image/*" multiple>
@@ -47,12 +47,24 @@
 const tg = (window.Telegram && Telegram.WebApp) ? Telegram.WebApp : null;
 if(tg) tg.expand();
 
-const apiBase = "https://kwk2ke-169-150-209-165.ru.tuna.am/api";
+const apiBase = "https://taynp5-169-150-209-165.ru.tuna.am/api";
+
+/* ссылки на элементы формы */
+const $ = id => document.getElementById(id);
+const inp = {
+  company:      $("company_name"),
+  city:         $("partner_city"),
+  address:      $("partner_address"),
+  descr:        $("partner_description"),
+  email:        $("partner_email"),
+  password:     $("partner_password")
+};
 
 /* -------- предпросмотр выбранных файлов -------- */
-photoInput.onchange = () => {
+$("photoInput").onchange = () => {
+  const preview = $("preview");
   preview.innerHTML = "";
-  [...photoInput.files].slice(0,5).forEach(f=>{
+  [...$("photoInput").files].slice(0,5).forEach(f=>{
     const img = document.createElement("img");
     img.src = URL.createObjectURL(f);
     preview.appendChild(img);
@@ -61,40 +73,51 @@ photoInput.onchange = () => {
 
 /* --------------- регистрация партнёра ---------- */
 async function register(){
-  const files = Array.from(photoInput.files).slice(0,5);
-  const photos = [];
+  /* обязательные поля */
+  if(!inp.company.value.trim()){
+    alert("Заполните поле «Название компании»"); return;
+  }
+  if(!inp.email.value.trim()){
+    alert("Заполните Email"); return;
+  }
+  if(!inp.password.value){
+    alert("Введите пароль"); return;
+  }
 
-  /* 1. Загружаем каждый файл на /api/upload_photo и собираем URL-ы */
+  /* 1. загружаем фото */
+  const files  = Array.from($("photoInput").files).slice(0,5);
+  const photos = [];
   for(const file of files){
     const fd = new FormData(); fd.append("photo", file);
-    const res = await fetch(`${apiBase}/upload_photo`, {method:"POST", body:fd});
-    const j   = await res.json();
-    if(j.status !== "success"){
-      alert("Ошибка загрузки фото: "+(j.message||""));
-      return;
+    const r  = await fetch(`${apiBase}/upload_photo`, {method:"POST", body:fd});
+    const j  = await r.json();
+    if(j.status!=="success"){
+      alert("Ошибка загрузки фото: "+(j.message||"")); return;
     }
     photos.push(j.url);
   }
 
-  /* 2. Формируем payload и отправляем в Telegram-бот */
+  /* 2. формируем payload */
   const payload = {
     action:       "register",
     telegram_id:  tg ? tg.initDataUnsafe.user.id : 0,
-    name:         name.value.trim(),
-    city:         city.value.trim(),
-    address:      address.value.trim(),
-    description:  description.value.trim(),
-    email:        email.value.trim(),
-    password:     password.value,
+    name:         inp.company.value.trim(),
+    city:         inp.city.value.trim(),
+    address:      inp.address.value.trim(),
+    description:  inp.descr.value.trim(),
+    email:        inp.email.value.trim(),
+    password:     inp.password.value,
     photos
   };
 
+  /* 3. отправляем */
   if(tg){
     tg.sendData(JSON.stringify(payload));
     tg.close();
   }else{
-    /* fallback для отладки в браузере */
-    alert("TEST JSON:\n"+JSON.stringify(payload,null,2));
+    /* отладка в браузере без Telegram */
+    console.log("Payload to bot:", payload);
+    alert("Данные сформированы, посмотрите в консоли.");
   }
 }
 </script>
