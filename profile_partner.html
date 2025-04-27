@@ -1,28 +1,43 @@
-<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8">
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
 <title>Карточка партнёра</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
  body{background:#161616;color:#fff;font-family:Arial;padding:20px}
- #back{background:none;border:none;color:#32CD32;font-size:18px;
-       text-decoration:underline;cursor:pointer;margin-bottom:10px}
+ #back{background:none;border:none;color:#32CD32;font-size:18px;text-decoration:underline;cursor:pointer;margin-bottom:10px}
  h2{text-align:center;margin-bottom:10px}
  label{display:block;margin-top:10px}
  input,textarea{width:100%;background:#292929;color:#fff;border:none;border-radius:5px;padding:10px}
  .row{display:flex;justify-content:space-between;margin-top:20px}
  button{width:48%;padding:12px;border:none;border-radius:6px;cursor:pointer;font-weight:bold}
  .edit{background:#FFA500;color:#000}.save{background:#32CD32;color:#fff}
-</style></head><body>
+ /* --- галерея --- */
+ .grid{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+ .grid .cell{position:relative}
+ .grid img{width:90px;height:90px;object-fit:cover;border-radius:6px}
+ .del{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border:none;border-radius:50%;background:#aa2e2e;color:#fff;cursor:pointer}
+ .add{width:90px;height:90px;display:flex;align-items:center;justify-content:center;font-size:38px;
+      color:#555;border:2px dashed #555;border-radius:6px;cursor:pointer}
+ .disabled .del,.disabled .add{display:none}      /* скрываем, если не в режиме редактирования */
+</style>
+</head>
+<body>
 
-<button id="back">← Назад</button>
-<h2>Карточка партнёра</h2>
+<button id="back">← Назад</button>
+<h2>Карточка партнёра</h2>
 
 <label>Название</label><input id="company_name" disabled>
 <label>Описание</label><textarea id="description" rows="3" disabled></textarea>
 <label>Адрес</label><input id="address" disabled>
 <label>Город</label><input id="city" disabled>
-<label>Ссылка на карту</label><input id="map_link" disabled>
+<label>Ссылка на карту</label><input id="map_link" disabled>
 <label>VK</label><input id="vk_link" disabled>
 <label>Telegram</label><input id="tg_link" disabled>
+
+<label>Фотографии (до 5 шт.)</label>
+<div id="gallery" class="grid disabled"></div>
 
 <div class="row">
   <button id="edit" class="edit">Изменить</button>
@@ -30,30 +45,33 @@
 </div>
 
 <script>
- const api = 'https://taynp5-169-150-209-165.ru.tuna.am/api';
- const tg  = Telegram.WebApp; tg.expand();
- const pid = new URLSearchParams(location.search).get('partner_id') ||
-             localStorage.getItem('partner_id');
+const api = 'https://taynp5-169-150-209-165.ru.tuna.am/api';          // ← ваш URL
+const tg  = Telegram.WebApp; tg.expand();
+const pid = new URLSearchParams(location.search).get('partner_id') ||
+            localStorage.getItem('partner_id');
 
- /* элементы формы */
- const el = {
-   name:        document.getElementById('company_name'),
-   description: document.getElementById('description'),
-   address:     document.getElementById('address'),
-   city:        document.getElementById('city'),
-   map_link:    document.getElementById('map_link'),
-   vk_link:     document.getElementById('vk_link'),
-   tg_link:     document.getElementById('tg_link')
- };
+/* ------- элементы формы ------- */
+const el = {
+  name:        document.getElementById('company_name'),
+  description: document.getElementById('description'),
+  address:     document.getElementById('address'),
+  city:        document.getElementById('city'),
+  map_link:    document.getElementById('map_link'),
+  vk_link:     document.getElementById('vk_link'),
+  tg_link:     document.getElementById('tg_link')
+};
+const galleryBox = document.getElementById('gallery');
+let photos = [];                     // массив URL-ов
+let editing = false;
 
-back.onclick = ()=>location.href='cabinet.html';
+back.onclick = () => location.href = 'cabinet.html';
 
-/* загрузка данных */
+/* ---------- загрузка данных партнёра ---------- */
 fetch(`${api}/partners/${pid}`)
-  .then(r=>r.json())
-  .then(d=>{
+ .then(r=>r.json())
+ .then(d=>{
     if(d.status!=='success') throw d.message;
-    const p=d.partner;
+    const p = d.partner;
     el.name.value        = p.name        || '';
     el.description.value = p.description || '';
     el.address.value     = p.address     || '';
@@ -61,17 +79,74 @@ fetch(`${api}/partners/${pid}`)
     el.map_link.value    = p.map_link    || '';
     el.vk_link.value     = p.vk_link     || '';
     el.tg_link.value     = p.tg_link     || '';
-  })
-  .catch(e=>{
+    photos = Array.isArray(p.photos) ? p.photos : JSON.parse(p.photos||'[]');
+    renderGallery();
+ })
+ .catch(e=>{
     alert('Ошибка загрузки данных: '+e);
     location.href='cabinet.html';
-  });
+ });
 
+/* ---------- переключение в режим редактирования ---------- */
 edit.onclick = ()=>{
   Object.values(el).forEach(inp=>inp.disabled=false);
   edit.style.display='none'; save.style.display='inline-block';
+  editing = true;
+  galleryBox.classList.remove('disabled');
+  renderGallery();
 };
 
+/* ---------- отрисовка галереи ---------- */
+function renderGallery(){
+  galleryBox.innerHTML = '';
+  photos.forEach((url,i)=>{
+    const cell = document.createElement('div'); cell.className='cell';
+    const img  = document.createElement('img'); img.src = url; cell.appendChild(img);
+
+    const del  = document.createElement('button');
+    del.className='del'; del.textContent='×';
+    del.onclick = ()=> removePhoto(i);
+    cell.appendChild(del);
+
+    galleryBox.appendChild(cell);
+  });
+
+  if(editing && photos.length < 5){
+    const add = document.createElement('div');
+    add.className='add'; add.textContent='+';
+    add.title='Добавить фото';
+    add.onclick = addPhoto;
+    galleryBox.appendChild(add);
+  }
+}
+
+/* ---------- добавление фото ---------- */
+function addPhoto(){
+  const inp = document.createElement('input');
+  inp.type='file'; inp.accept='image/*';
+  inp.onchange = async ()=>{
+    if(!inp.files.length) return;
+    const fd = new FormData(); fd.append('photo', inp.files[0]);
+
+    try{
+      const r = await fetch(`${api}/upload_photo`, {method:'POST', body:fd});
+      const j = await r.json();
+      if(j.status!=='success') { alert(j.message||'Ошибка загрузки'); return; }
+      photos.push(j.url);
+      renderGallery();
+    }catch{ alert('Сетевая ошибка'); }
+  };
+  inp.click();
+}
+
+/* ---------- удаление фото ---------- */
+function removePhoto(i){
+  if(!confirm('Удалить это фото?')) return;
+  photos.splice(i,1);
+  renderGallery();
+}
+
+/* ---------- сохранение ---------- */
 save.onclick = ()=>{
   const body = {
     id:          pid,
@@ -81,9 +156,13 @@ save.onclick = ()=>{
     city:        el.city.value.trim(),
     map_link:    el.map_link.value.trim(),
     vk_link:     el.vk_link.value.trim(),
-    tg_link:     el.tg_link.value.trim()
+    tg_link:     el.tg_link.value.trim(),
+    photos
   };
-  if(!body.name){ alert('Поле «Название» не может быть пустым'); return; }
+  if(!body.name){
+    alert('Поле «Название» не может быть пустым');
+    return;
+  }
 
   fetch(`${api}/update_partner`,{
     method:'POST',
@@ -102,4 +181,5 @@ save.onclick = ()=>{
   .catch(()=>alert('Сетевая ошибка'));
 };
 </script>
-</body></html>
+</body>
+</html>
