@@ -94,7 +94,7 @@ async function register(){
     if(j.status!=="success"){
       alert("Ошибка загрузки фото: "+(j.message||"")); return;
     }
-    photos.push(j.url);
+    photos.push(j.path);
   }
 
   /* 2. формируем payload */
