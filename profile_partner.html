@@ -45,7 +45,9 @@
 </div>
 
 <script>
-const api = 'https://zf4uhc-169-150-209-165.ru.tuna.am/api';          // ← ваш URL
+const api = 'https://zf4uhc-169-150-209-165.ru.tuna.am/api';
+const BASE_FILE_URL = 'https://v1j6oa-79-127-211-217.ru.tuna.am';
+const fullUrl = u => u.startsWith('http') ? u : BASE_FILE_URL + u;
 const tg  = Telegram.WebApp; tg.expand();
 const pid = new URLSearchParams(location.search).get('partner_id') ||
             localStorage.getItem('partner_id');
@@ -80,6 +82,7 @@ fetch(`${api}/partners/${pid}`)
     el.vk_link.value     = p.vk_link     || '';
     el.tg_link.value     = p.tg_link     || '';
     photos = Array.isArray(p.photos) ? p.photos : JSON.parse(p.photos||'[]');
+    photos = photos.map(fullUrl);
     renderGallery();
  })
  .catch(e=>{
@@ -132,7 +135,7 @@ function addPhoto(){
       const r = await fetch(`${api}/upload_photo`, {method:'POST', body:fd});
       const j = await r.json();
       if(j.status!=='success') { alert(j.message||'Ошибка загрузки'); return; }
-      photos.push(j.url);
+      photos.push(fullUrl(j.path));
       renderGallery();
     }catch{ alert('Сетевая ошибка'); }
   };
